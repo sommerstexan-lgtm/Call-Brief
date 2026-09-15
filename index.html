@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1220" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="CallBrief" />
+  <title>CallBrief</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header>
+    <h1>CallBrief</h1>
+    <p class="sub">Paste a number. Get geography, patterns, and your memory. Nothing leaves this phone.</p>
+  </header>
+  <main>
+    <section data-panel="lookup">
+      <input id="num" class="pad" inputmode="tel" autocomplete="off" placeholder="(936) 555-0100" />
+      <div class="row">
+        <button class="primary" id="go" type="button">Look up</button>
+        <button class="ghost" id="paste" type="button">Paste</button>
+      </div>
+      <p class="hint">After a call, open Recents, copy the number, paste here. This app cannot see the ringing line.</p>
+      <div class="warnbox">Free mode: no live “who owns this” name from paid databases. What you get is area-code geography, toll-free/premium clues, spoof-ish patterns, and the log you build.</div>
+      <div id="result"></div>
+    </section>
+
+    <section data-panel="history" class="hidden">
+      <div class="card">
+        <h2>History</h2>
+        <p class="hint">Newest first. Tap a row to open it again.</p>
+        <div id="historyList"></div>
+      </div>
+    </section>
+
+    <section data-panel="watch" class="hidden">
+      <div class="card">
+        <h2>Prefix watch</h2>
+        <p class="hint">Same first six digits showing up repeatedly is a robocall-farm smell.</p>
+        <div id="watchList"></div>
+      </div>
+    </section>
+
+    <section data-panel="settings" class="hidden">
+      <div class="card">
+        <h2>Home number clues</h2>
+        <p class="hint">Used to flag neighbor-spoof and to complete 7-digit pastes. Default 936 is Huntsville, TX area.</p>
+        <label class="hint" for="homeNpa">Your area code (NPA)</label>
+        <input id="homeNpa" type="text" inputmode="numeric" maxlength="3" placeholder="936" />
+        <label class="hint" for="homeNxx">Your exchange (optional, first 3 after area)</label>
+        <input id="homeNxx" type="text" inputmode="numeric" maxlength="3" placeholder="294" />
+        <div class="row">
+          <button class="primary" id="saveHome" type="button">Save home</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Data</h2>
+        <p class="hint">All data stays in this browser profile. Export a backup before clearing site data.</p>
+        <div class="row">
+          <button class="ghost" id="exportBtn" type="button">Export JSON</button>
+          <button class="ghost" id="clearBtn" type="button">Erase local data</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Install</h2>
+        <p class="hint">iPhone: Share → Add to Home Screen. Android Chrome: menu → Install app. Then it opens full screen.</p>
+      </div>
+    </section>
+  </main>
+  <nav>
+    <button type="button" class="on" data-tab="lookup">Lookup</button>
+    <button type="button" data-tab="history">History</button>
+    <button type="button" data-tab="watch">Watch</button>
+    <button type="button" data-tab="settings">Settings</button>
+  </nav>
+  <script src="./area-codes.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
