@@ -1,6 +1,7 @@
 {
   "name": "CallBrief",
   "short_name": "CallBrief",
+  "version": "1.1.0",
   "description": "Local-first phone number brief: area, line clues, and your own spam memory.",
   "start_url": "./index.html",
   "scope": "./",

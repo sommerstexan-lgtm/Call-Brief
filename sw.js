@@ -1,4 +1,4 @@
-const CACHE = "callbrief-v1";
+const CACHE = "callbrief-1.1.0";
 const ASSETS = [
   "./",
   "./index.html",
@@ -8,7 +8,8 @@ const ASSETS = [
   "./area-codes.js",
   "./icon.svg",
   "./icon-192.png",
-  "./icon-512.png"
+  "./icon-512.png",
+  "./VERSION"
 ];
 
 self.addEventListener("install", (e) => {

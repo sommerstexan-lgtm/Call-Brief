@@ -125,18 +125,27 @@ function analyze(info) {
 }
 
 function addEvent(info, verdict, note) {
-  const ev = {
-    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-    national: info.national,
-    e164: info.e164,
-    ts: Date.now(),
-    verdict: verdict || "logged",
-    note: (note || "").trim()
-  };
-  state.events.unshift(ev);
+  const v = verdict || "logged";
+  const n = (note || "").trim();
+  const existing = state.events.find((e) => e.national === info.national);
+  if (existing) {
+    existing.verdict = v;
+    existing.note = n;
+    existing.ts = Date.now();
+    existing.e164 = info.e164;
+  } else {
+    state.events.unshift({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      national: info.national,
+      e164: info.e164,
+      ts: Date.now(),
+      verdict: v,
+      note: n
+    });
+  }
   if (!state.notes[info.national]) state.notes[info.national] = {};
-  if (verdict) state.notes[info.national].verdict = verdict;
-  if (note) state.notes[info.national].note = note.trim();
+  state.notes[info.national].verdict = v;
+  state.notes[info.national].note = n;
   save(state);
   render();
 }
@@ -151,6 +160,11 @@ function showLookup(raw) {
   }
   const a = analyze(info);
   const savedNote = (state.notes[info.national] || {}).note || "";
+  const savedV = (state.notes[info.national] || {}).verdict;
+  const labels = { spam: "Spam", maybe: "Not sure", ok: "Real person", logged: "Saved" };
+  const already = savedV
+    ? `Now tagged <strong>${escapeHtml(labels[savedV] || savedV)}</strong>. Tap a different button to change it. Use Not sure while you wait for another call.`
+    : "<strong>Tap one button below to save</strong> this number and note into History.";
   box.innerHTML = `
     <div class="card">
       <div class="pretty">${pretty(info.national)}</div>
@@ -161,19 +175,59 @@ function showLookup(raw) {
       <ul class="hint">${a.clues.map((c) => `<li>${escapeHtml(c)}</li>`).join("")}</ul>
       <label class="hint" for="note">Your note</label>
       <textarea id="note" rows="2" placeholder="Medicare pitch, quiet, hung up…">${escapeHtml(savedNote)}</textarea>
+      <p class="hint">${already}</p>
       <div class="verdicts">
-        <button class="v-spam" data-v="spam">Spam</button>
-        <button class="v-maybe" data-v="maybe">Not sure</button>
-        <button class="v-ok" data-v="ok">Real person</button>
-        <button class="v-info" data-v="logged">Save only</button>
+        <button class="v-spam" data-v="spam">${savedV ? "Change to Spam" : "Save as Spam"}</button>
+        <button class="v-maybe" data-v="maybe">${savedV ? "Change to Not sure" : "Save as Not sure"}</button>
+        <button class="v-ok" data-v="ok">${savedV ? "Change to Real" : "Save as Real"}</button>
+        <button class="v-info" data-v="logged">Save note only</button>
       </div>
     </div>`;
   box.querySelectorAll("[data-v]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const note = document.getElementById("note").value;
-      addEvent(info, btn.getAttribute("data-v"), note);
+      const verdict = btn.getAttribute("data-v");
+      addEvent(info, verdict, note);
+      showSaved(info, verdict, note);
     });
   });
+}
+
+function showSaved(info, verdict, note) {
+  const labels = { spam: "Spam", maybe: "Not sure", ok: "Real person", logged: "Saved" };
+  const box = document.getElementById("result");
+  box.innerHTML = `
+    <div class="card">
+      <div class="pretty">${pretty(info.national)}</div>
+      <p class="meta"><strong>Saved as ${escapeHtml(labels[verdict] || verdict)}</strong></p>
+      <p class="meta">Prefix group: ${info.npa}-${info.nxx}-xxxx</p>
+      ${note ? `<p class="meta">Note: ${escapeHtml(note)}</p>` : ""}
+      <p class="hint">Wrong tag? Change it below. Not sure is the right parking spot while you wait for another call from this number or prefix.</p>
+      <div class="verdicts">
+        <button class="v-spam" data-v="spam">Change to Spam</button>
+        <button class="v-maybe" data-v="maybe">Change to Not sure</button>
+        <button class="v-ok" data-v="ok">Change to Real</button>
+        <button class="v-info" data-v="logged">Save note only</button>
+      </div>
+      <div class="row">
+        <button class="primary" type="button" id="newNum">Clear — new number</button>
+        <button class="ghost" type="button" id="goHist">Open History</button>
+      </div>
+    </div>`;
+  box.querySelectorAll("[data-v]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const next = btn.getAttribute("data-v");
+      const n = note || "";
+      addEvent(info, next, n);
+      showSaved(info, next, n);
+    });
+  });
+  document.getElementById("newNum").addEventListener("click", () => {
+    document.getElementById("num").value = "";
+    box.innerHTML = "";
+    document.getElementById("num").focus();
+  });
+  document.getElementById("goHist").addEventListener("click", () => setTab("history"));
 }
 
 function escapeHtml(s) {
@@ -233,9 +287,12 @@ function renderHistory() {
 
 function renderWatch() {
   const el = document.getElementById("watchList");
-  const clusters = prefixClusters().filter((c) => c.count >= 2);
+  const q = onlyDigits(document.getElementById("watchQ") ? document.getElementById("watchQ").value : "");
+  let clusters = prefixClusters();
+  if (q) clusters = clusters.filter((c) => c.key.startsWith(q));
+  clusters = clusters.filter((c) => c.count >= 1);
   if (!clusters.length) {
-    el.innerHTML = `<p class="empty">Prefixes show up here after two or more logged numbers share the same first six digits.</p>`;
+    el.innerHTML = `<p class="empty">No prefix groups yet. Save a number first, then this list shows area+prefix (502-444).</p>`;
     return;
   }
   el.innerHTML = clusters
@@ -310,6 +367,8 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("clearBtn").addEventListener("click", clearAll);
   document.getElementById("homeNpa").value = state.homeNpa || "";
   document.getElementById("homeNxx").value = state.homeNxx || "";
+  const wq = document.getElementById("watchQ");
+  if (wq) wq.addEventListener("input", renderWatch);
 });
 
 if ("serviceWorker" in navigator) {

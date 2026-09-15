@@ -6,15 +6,16 @@
   <meta name="theme-color" content="#0b1220" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="CallBrief" />
-  <title>CallBrief</title>
+  <title>CallBrief 1.1.0</title>
+  <meta name="application-version" content="1.1.0" />
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" href="./icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="./icon-192.png" />
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./styles.css?v=1.1.0" />
 </head>
 <body>
   <header>
-    <h1>CallBrief</h1>
+    <h1>CallBrief <span class="sub">v1.1.0</span></h1>
     <p class="sub">Paste a number. Get geography, patterns, and your memory. Nothing leaves this phone.</p>
   </header>
   <main>
@@ -40,7 +41,8 @@
     <section data-panel="watch" class="hidden">
       <div class="card">
         <h2>Prefix watch</h2>
-        <p class="hint">Same first six digits showing up repeatedly is a robocall-farm smell.</p>
+        <p class="hint">Spam grouping = area code + next three digits (example 502-444). Type 502 or 502444 to filter.</p>
+        <input id="watchQ" type="text" inputmode="numeric" placeholder="Search 502 or 502444" />
         <div id="watchList"></div>
       </div>
     </section>
@@ -66,6 +68,8 @@
         </div>
       </div>
       <div class="card">
+        <h2>Version</h2>
+        <p class="hint">CallBrief v1.1.0 — change tags, prefix watch search, save confirmation.</p>
         <h2>Install</h2>
         <p class="hint">iPhone: Share → Add to Home Screen. Android Chrome: menu → Install app. Then it opens full screen.</p>
       </div>
@@ -77,7 +81,7 @@
     <button type="button" data-tab="watch">Watch</button>
     <button type="button" data-tab="settings">Settings</button>
   </nav>
-  <script src="./area-codes.js"></script>
-  <script src="./app.js"></script>
+  <script src="./area-codes.js?v=1.1.0"></script>
+  <script src="./app.js?v=1.1.0"></script>
 </body>
 </html>
